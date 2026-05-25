@@ -1,0 +1,198 @@
+
+# Create all 8 game files + hub page
+
+# ==========================================
+# GAME 1: DIGITAL ESCAPE ROOM
+# ==========================================
+escape_room = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Escape Room | NovaArcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Fredoka', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height:100vh; color:#fff; overflow-x:hidden;
+}
+.container { max-width:900px; margin:0 auto; padding:30px 20px; }
+h1 { text-align:center; font-size:2.5rem; margin-bottom:10px; text-shadow:0 0 20px #00c6ff; }
+.timer-bar {
+  width:100%; height:20px; background:rgba(255,255,255,0.1);
+  border-radius:10px; overflow:hidden; margin:20px 0;
+}
+.timer-fill {
+  height:100%; background:linear-gradient(90deg,#00c6ff,#0072ff);
+  width:100%; transition:width 1s linear;
+}
+.room {
+  background:rgba(255,255,255,0.05);
+  border:2px solid rgba(0,198,255,0.3);
+  border-radius:20px; padding:30px;
+  margin:20px 0; backdrop-filter:blur(10px);
+}
+.room h2 { color:#00c6ff; margin-bottom:15px; font-size:1.5rem; }
+.puzzle { margin:20px 0; padding:20px; background:rgba(0,0,0,0.3); border-radius:15px; }
+.puzzle p { margin-bottom:15px; line-height:1.6; font-size:1.1rem; }
+input[type="text"], input[type="number"] {
+  padding:12px 18px; border:none; border-radius:12px;
+  font-size:1rem; font-family:'Fredoka', sans-serif;
+  background:rgba(255,255,255,0.1); color:#fff;
+  border:2px solid rgba(0,198,255,0.3); width:200px;
+}
+input::placeholder { color:rgba(255,255,255,0.5); }
+button {
+  padding:12px 28px; border:none; border-radius:12px;
+  font-family:'Fredoka', sans-serif; font-size:1rem; font-weight:700;
+  background:#00c6ff; color:#000; cursor:pointer; margin-left:10px;
+  transition:0.3s;
+}
+button:hover { transform:scale(1.05); background:#fff; }
+.hint { color:#ffb703; font-size:0.9rem; margin-top:10px; }
+.locked { opacity:0.4; pointer-events:none; }
+.unlocked { animation:unlock 0.5s ease; }
+@keyframes unlock {
+  0% { transform:scale(0.9); opacity:0; }
+  100% { transform:scale(1); opacity:1; }
+}
+.win-screen {
+  text-align:center; padding:60px 20px;
+}
+.win-screen h2 { font-size:3rem; color:#00e676; margin-bottom:20px; }
+.code-display {
+  font-size:2rem; letter-spacing:10px; background:rgba(0,0,0,0.5);
+  padding:20px; border-radius:15px; margin:20px 0;
+  border:2px solid #00c6ff; color:#00c6ff;
+}
+.back-link {
+  display:inline-block; margin-top:30px; padding:15px 30px;
+  background:rgba(255,255,255,0.1); color:#fff;
+  border-radius:15px; text-decoration:none; border:2px solid rgba(255,255,255,0.2);
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔐 Digital Escape Room</h1>
+  <div class="timer-bar"><div class="timer-fill" id="timer"></div></div>
+  <p style="text-align:center; opacity:0.8;">Solve all 4 puzzles to escape! Time limit: 10 minutes</p>
+
+  <div class="room" id="room1">
+    <h2>Room 1: The Binary Vault</h2>
+    <div class="puzzle">
+      <p>💻 I speak in 1s and 0s. Decode this message:</p>
+      <p style="font-family:monospace; font-size:1.3rem; color:#00c6ff;">01001000 01000101 01001100 01010000</p>
+      <p style="font-size:0.95rem; opacity:0.8;">(Hint: It's an 8-letter word asking for assistance)</p>
+      <input type="text" id="ans1" placeholder="Your answer...">
+      <button onclick="check1()">Unlock</button>
+      <p id="msg1"></p>
+    </div>
+  </div>
+
+  <div class="room locked" id="room2">
+    <h2>Room 2: The Cipher Chamber</h2>
+    <div class="puzzle">
+      <p>🔑 Caesar cipher shift of 3:</p>
+      <p style="font-size:1.3rem; color:#ff4fd8;">ZHOFRPH WR WKH URRP</p>
+      <input type="text" id="ans2" placeholder="Decode the message...">
+      <button onclick="check2()">Unlock</button>
+      <p id="msg2"></p>
+    </div>
+  </div>
+
+  <div class="room locked" id="room3">
+    <h2>Room 3: The Logic Lab</h2>
+    <div class="puzzle">
+      <p>🧩 Pattern sequence: 2, 6, 12, 20, 30, ?</p>
+      <p style="font-size:0.95rem; opacity:0.8;">What's the next number?</p>
+      <input type="number" id="ans3" placeholder="Next number...">
+      <button onclick="check3()">Unlock</button>
+      <p id="msg3"></p>
+    </div>
+  </div>
+
+  <div class="room locked" id="room4">
+    <h2>Room 4: The Final Lock</h2>
+    <div class="puzzle">
+      <p>🎯 Combine the answers:</p>
+      <p>Room 1 answer length + Room 3 answer = ?</p>
+      <p style="font-size:0.95rem; opacity:0.8;">(HELP = 4 letters, Room 3 answer was 42, so 4 + 42 = 46)</p>
+      <input type="number" id="ans4" placeholder="Final code...">
+      <button onclick="check4()">ESCAPE!</button>
+      <p id="msg4"></p>
+    </div>
+  </div>
+
+  <div class="win-screen" id="win" style="display:none;">
+    <h2>🎉 YOU ESCAPED!</h2>
+    <p style="font-size:1.2rem;">Congratulations! You solved all puzzles.</p>
+    <div class="code-display">ESCAPE-2026</div>
+    <p>Your escape code: <strong>ESCAPE-2026</strong></p>
+    <a href="index.html" class="back-link">← Back to NovaArcade</a>
+  </div>
+</div>
+
+<script>
+let timeLeft = 600;
+const timerEl = document.getElementById('timer');
+const timerInterval = setInterval(() => {
+  timeLeft--;
+  timerEl.style.width = (timeLeft/600*100) + '%';
+  if(timeLeft <= 0) {
+    clearInterval(timerInterval);
+    alert('Time\'s up! The room remains locked forever...');
+    document.body.innerHTML = '<div style="text-align:center;padding:100px;"><h1>⏰ TIME\'S UP</h1><p>The vault has sealed permanently.</p><a href="index.html" class="back-link">Try Again</a></div>';
+  }
+}, 1000);
+
+function check1() {
+  const ans = document.getElementById('ans1').value.toUpperCase().trim();
+  if(ans === 'HELP') {
+    document.getElementById('msg1').innerHTML = '<span style="color:#00e676;">✅ Correct! Room 2 unlocked.</span>';
+    document.getElementById('room2').classList.remove('locked');
+    document.getElementById('room2').classList.add('unlocked');
+  } else {
+    document.getElementById('msg1').innerHTML = '<span style="color:#ff5f6d;">❌ Wrong! Try again.</span>';
+  }
+}
+function check2() {
+  const ans = document.getElementById('ans2').value.toUpperCase().trim();
+  if(ans === 'WELCOME TO THE ROOM') {
+    document.getElementById('msg2').innerHTML = '<span style="color:#00e676;">✅ Correct! Room 3 unlocked.</span>';
+    document.getElementById('room3').classList.remove('locked');
+    document.getElementById('room3').classList.add('unlocked');
+  } else {
+    document.getElementById('msg2').innerHTML = '<span style="color:#ff5f6d;">❌ Wrong! Shift each letter back by 3.</span>';
+  }
+}
+function check3() {
+  const ans = parseInt(document.getElementById('ans3').value);
+  if(ans === 42) {
+    document.getElementById('msg3').innerHTML = '<span style="color:#00e676;">✅ Correct! Room 4 unlocked.</span>';
+    document.getElementById('room4').classList.remove('locked');
+    document.getElementById('room4').classList.add('unlocked');
+  } else {
+    document.getElementById('msg3').innerHTML = '<span style="color:#ff5f6d;">❌ Wrong! Look at the differences between numbers.</span>';
+  }
+}
+function check4() {
+  const ans = parseInt(document.getElementById('ans4').value);
+  if(ans === 46) {
+    clearInterval(timerInterval);
+    document.getElementById('win').style.display = 'block';
+    document.querySelectorAll('.room').forEach(r => r.style.display = 'none');
+    document.querySelector('.timer-bar').style.display = 'none';
+  } else {
+    document.getElementById('msg4').innerHTML = '<span style="color:#ff5f6d;">❌ Wrong! 4 + 42 = ?</span>';
+  }
+}
+</script>
+</body>
+</html>'''
+
+with open('/mnt/agents/output/escape-room.html', 'w') as f:
+    f.write(escape_room)
+print("✅ escape-room.html created")
