@@ -1,0 +1,332 @@
+
+# ==========================================
+# GAME 4: SOCIAL DEDUCTION / MAFIA
+# ==========================================
+mafia = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Deduction / Mafia | NovaArcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Fredoka', sans-serif;
+  background: linear-gradient(135deg, #1a0a0a, #2d1b1b, #1a0a0a);
+  min-height:100vh; color:#fff; overflow-x:hidden;
+}
+.container { max-width:900px; margin:0 auto; padding:30px 20px; }
+h1 { text-align:center; font-size:2.5rem; margin-bottom:10px; text-shadow:0 0 20px #ff5f6d; }
+.phase-banner {
+  text-align:center; padding:15px; margin:20px 0;
+  background:rgba(255,95,109,0.1); border:2px solid rgba(255,95,109,0.3);
+  border-radius:15px; font-size:1.2rem;
+}
+.players-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:15px; margin:30px 0;
+}
+.player-card {
+  background:rgba(255,255,255,0.05);
+  border:2px solid rgba(255,255,255,0.2);
+  border-radius:15px; padding:15px; text-align:center;
+  cursor:pointer; transition:0.3s;
+}
+.player-card:hover { transform:translateY(-3px); border-color:#ff5f6d; }
+.player-card.dead { opacity:0.4; pointer-events:none; }
+.player-card.voted { border-color:#ffb703; background:rgba(255,183,3,0.1); }
+.player-card.eliminated { border-color:#ff5f6d; background:rgba(255,95,109,0.2); }
+.player-avatar { font-size:2.5rem; margin-bottom:8px; }
+.player-name { font-weight:600; font-size:0.95rem; }
+.player-role { font-size:0.8rem; opacity:0.7; margin-top:5px; }
+.action-panel {
+  background:rgba(255,255,255,0.05);
+  border-radius:20px; padding:25px; margin:20px 0;
+  text-align:center;
+}
+.role-reveal {
+  padding:30px; background:rgba(0,0,0,0.4);
+  border-radius:20px; margin:20px 0; text-align:center;
+  border:2px solid;
+}
+.villager { border-color:#00e676 !important; }
+.mafia { border-color:#ff5f6d !important; }
+.detective { border-color:#00c6ff !important; }
+button {
+  padding:14px 35px; border:none; border-radius:15px;
+  font-family:'Fredoka', sans-serif; font-size:1.1rem; font-weight:700;
+  background:#ff5f6d; color:#fff; cursor:pointer; transition:0.3s; margin:5px;
+}
+button:hover { transform:scale(1.05); background:#fff; color:#ff5f6d; }
+button:disabled { opacity:0.5; cursor:not-allowed; }
+.log {
+  background:rgba(0,0,0,0.3); border-radius:15px; padding:20px;
+  margin:20px 0; max-height:200px; overflow-y:auto;
+}
+.log-entry { padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.1); }
+.log-entry:last-child { border-bottom:none; }
+.back-link {
+  display:inline-block; margin-top:30px; padding:15px 30px;
+  background:rgba(255,255,255,0.1); color:#fff;
+  border-radius:15px; text-decoration:none; border:2px solid rgba(255,255,255,0.2);
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🕵️ Social Deduction / Mafia</h1>
+  
+  <div id="setup">
+    <div class="phase-banner">
+      <p>7 players: 2 Mafia, 1 Detective, 4 Villagers</p>
+      <p>Find and eliminate the Mafia before they kill everyone!</p>
+    </div>
+    <div style="text-align:center; margin:30px 0;">
+      <button onclick="startGame()">Start Game</button>
+    </div>
+  </div>
+
+  <div id="game" style="display:none;">
+    <div class="phase-banner" id="phaseText">🌙 Night falls... Everyone close your eyes.</div>
+    
+    <div class="role-reveal" id="roleReveal" style="display:none;">
+      <div style="font-size:3rem; margin-bottom:15px;" id="roleIcon">🎭</div>
+      <h2 id="roleTitle">Your Role</h2>
+      <p id="roleDesc">Description here</p>
+      <button onclick="hideRole()">Hide & Continue</button>
+    </div>
+
+    <div class="players-grid" id="playersGrid"></div>
+
+    <div class="action-panel" id="actionPanel" style="display:none;">
+      <h3 id="actionTitle">Choose your action</h3>
+      <p id="actionDesc">Select a player</p>
+      <button onclick="confirmAction()">Confirm</button>
+      <button onclick="skipAction()">Skip</button>
+    </div>
+
+    <div class="log" id="gameLog">
+      <div class="log-entry"><strong>🎮 Game started!</strong></div>
+    </div>
+  </div>
+
+  <div id="endScreen" style="display:none; text-align:center; padding:40px;">
+    <h2 id="endTitle" style="font-size:2.5rem; margin-bottom:20px;"></h2>
+    <p id="endDesc" style="font-size:1.2rem;"></p>
+    <div style="margin:30px 0;">
+      <button onclick="location.reload()">Play Again</button>
+      <a href="index.html" class="back-link">← Back to NovaArcade</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const avatars = ['🧑','👩','👨','👧','👦','👵','👴'];
+const names = ['Alex','Blake','Casey','Drew','Ellis','Finn','Gray'];
+let players = [], phase = 'night', dayCount = 1, selectedTarget = null;
+let myPlayer = null;
+
+function startGame() {
+  document.getElementById('setup').style.display='none';
+  document.getElementById('game').style.display='block';
+  initPlayers();
+  showRole();
+}
+
+function initPlayers() {
+  const roles = ['mafia','mafia','detective','villager','villager','villager','villager'];
+  roles.sort(()=>Math.random()-0.5);
+  players = names.map((name,i)=>({
+    id:i, name:name, avatar:avatars[i],
+    role:roles[i], alive:true,
+    votes:0
+  }));
+  myPlayer = players[0]; // Player is always first
+  renderPlayers();
+}
+
+function renderPlayers() {
+  const grid = document.getElementById('playersGrid');
+  grid.innerHTML='';
+  players.forEach(p=>{
+    const card = document.createElement('div');
+    card.className='player-card'+(p.alive?'':' dead');
+    if(p===selectedTarget) card.classList.add('voted');
+    card.innerHTML=`<div class="player-avatar">${p.avatar}</div>
+      <div class="player-name">${p.name}</div>
+      <div class="player-role">${p.alive?(p===myPlayer?p.role.toUpperCase():'???'):'💀 ELIMINATED'}</div>`;
+    if(p.alive && p!==myPlayer) {
+      card.onclick=()=>selectPlayer(p);
+    }
+    grid.appendChild(card);
+  });
+}
+
+function showRole() {
+  const reveal = document.getElementById('roleReveal');
+  reveal.style.display='block';
+  document.getElementById('roleIcon').textContent = 
+    myPlayer.role==='mafia'?'🗡️':myPlayer.role==='detective'?'🔍':'👥';
+  document.getElementById('roleTitle').textContent = `You are ${myPlayer.role.toUpperCase()}`;
+  document.getElementById('roleDesc').textContent = 
+    myPlayer.role==='mafia'?'Kill villagers at night. Deceive during the day.':
+    myPlayer.role==='detective'?'Investigate one player each night to find Mafia.':
+    'Find and vote out the Mafia members!';
+  reveal.className='role-reveal '+myPlayer.role;
+}
+
+function hideRole() {
+  document.getElementById('roleReveal').style.display='none';
+  startNight();
+}
+
+function log(msg) {
+  const logDiv = document.getElementById('gameLog');
+  const entry = document.createElement('div');
+  entry.className='log-entry';
+  entry.innerHTML=msg;
+  logDiv.insertBefore(entry, logDiv.firstChild);
+}
+
+function startNight() {
+  phase='night';
+  document.getElementById('phaseText').textContent=`🌙 Night ${dayCount} — Close your eyes...`;
+  document.getElementById('actionPanel').style.display='block';
+  selectedTarget=null;
+  
+  if(myPlayer.role==='mafia' && myPlayer.alive) {
+    document.getElementById('actionTitle').textContent='🗡️ Choose a victim';
+    document.getElementById('actionDesc').textContent='Select someone to eliminate';
+  } else if(myPlayer.role==='detective' && myPlayer.alive) {
+    document.getElementById('actionTitle').textContent='🔍 Investigate a player';
+    document.getElementById('actionDesc').textContent='Select someone to investigate';
+  } else {
+    document.getElementById('actionTitle').textContent='😴 You sleep peacefully...';
+    document.getElementById('actionDesc').textContent='Villagers sleep during the night';
+    setTimeout(()=>resolveNight(),2000);
+  }
+}
+
+function selectPlayer(p) {
+  if(!myPlayer.alive) return;
+  selectedTarget = p;
+  renderPlayers();
+}
+
+function confirmAction() {
+  if(!selectedTarget && (myPlayer.role==='mafia'||myPlayer.role==='detective')) {
+    alert('Select a target first!'); return;
+  }
+  resolveNight();
+}
+
+function skipAction() {
+  selectedTarget=null;
+  resolveNight();
+}
+
+function resolveNight() {
+  document.getElementById('actionPanel').style.display='none';
+  
+  // AI mafia kills a random villager
+  const aliveVillagers = players.filter(p=>p.alive && p.role!=='mafia');
+  const victim = aliveVillagers[Math.floor(Math.random()*aliveVillagers.length)];
+  if(victim) {
+    victim.alive=false;
+    log(`🌙 <strong>${victim.name}</strong> was found dead in the morning!`);
+  }
+  
+  if(myPlayer.role==='detective' && selectedTarget) {
+    const isMafia = selectedTarget.role==='mafia';
+    log(`🔍 Investigation: <strong>${selectedTarget.name}</strong> is ${isMafia?'🗡️ MAFIA!':'👥 innocent.'}`);
+  }
+  
+  renderPlayers();
+  checkWin();
+  if(document.getElementById('game').style.display!=='none') {
+    setTimeout(()=>startDay(),2000);
+  }
+}
+
+function startDay() {
+  phase='day';
+  document.getElementById('phaseText').textContent=`☀️ Day ${dayCount} — Discuss and vote!`;
+  document.getElementById('actionPanel').style.display='block';
+  document.getElementById('actionTitle').textContent='🗳️ Vote to eliminate';
+  document.getElementById('actionDesc').textContent='Select who you suspect is Mafia';
+  selectedTarget=null;
+  renderPlayers();
+}
+
+function resolveDay() {
+  // Count votes (player vote + random AI votes)
+  players.forEach(p=>p.votes=0);
+  if(selectedTarget) selectedTarget.votes++;
+  
+  // AI votes randomly
+  const alivePlayers = players.filter(p=>p.alive);
+  alivePlayers.forEach(p=>{
+    if(p!==myPlayer) {
+      const target = alivePlayers[Math.floor(Math.random()*alivePlayers.length)];
+      if(target!==p) target.votes++;
+    }
+  });
+  
+  // Find who got most votes
+  let maxVotes=0, eliminated=null;
+  alivePlayers.forEach(p=>{
+    if(p.votes>maxVotes) { maxVotes=p.votes; eliminated=p; }
+  });
+  
+  if(eliminated) {
+    eliminated.alive=false;
+    log(`☀️ <strong>${eliminated.name}</strong> was voted out! They were ${eliminated.role.toUpperCase()}.`);
+  }
+  
+  dayCount++;
+  renderPlayers();
+  checkWin();
+  if(document.getElementById('game').style.display!=='none') {
+    setTimeout(()=>startNight(),3000);
+  }
+}
+
+function checkWin() {
+  const aliveMafia = players.filter(p=>p.alive && p.role==='mafia').length;
+  const aliveVillagers = players.filter(p=>p.alive && p.role!=='mafia').length;
+  
+  if(aliveMafia===0) {
+    endGame('villagers');
+  } else if(aliveMafia>=aliveVillagers) {
+    endGame('mafia');
+  }
+}
+
+function endGame(winner) {
+  document.getElementById('game').style.display='none';
+  document.getElementById('endScreen').style.display='block';
+  const iWon = (winner==='mafia' && myPlayer.role==='mafia') || (winner==='villagers' && myPlayer.role!=='mafia');
+  document.getElementById('endTitle').innerHTML = winner==='mafia'?'🗡️ MAFIA WINS!':'👥 VILLAGERS WIN!';
+  document.getElementById('endTitle').style.color = winner==='mafia'?'#ff5f6d':'#00e676';
+  document.getElementById('endDesc').textContent = iWon?'🎉 You won!':'😢 You lost. Better luck next time!';
+}
+
+// Override confirmAction for day phase
+const originalConfirm = confirmAction;
+confirmAction = function() {
+  if(phase==='day') {
+    if(!selectedTarget) { alert('Vote for someone!'); return; }
+    document.getElementById('actionPanel').style.display='none';
+    resolveDay();
+  } else {
+    originalConfirm();
+  }
+};
+</script>
+</body>
+</html>'''
+
+with open('/mnt/agents/output/mafia.html', 'w') as f:
+    f.write(mafia)
+print("✅ mafia.html created")
