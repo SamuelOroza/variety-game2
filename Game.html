@@ -1,1 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NovaArcade</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family:'Fredoka', sans-serif;
+      background:
+      linear-gradient(135deg,#6ee7ff,#7c3aed,#ff4fd8);
+      min-height:100vh;
+      color:white;
+      overflow-x:hidden;
+    }
+
+    a{
+      text-decoration:none;
+      color:white;
+    }
+
+    /* NAVBAR */
+
+    header{
+      width:100%;
+      padding:20px 5%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:rgba(255,255,255,0.15);
+      backdrop-filter:blur(12px);
+      position:sticky;
+      top:0;
+      z-index:999;
+      border-bottom:2px solid rgba(255,255,255,0.15);
+    }
+
+    header h1{
+      font-size:2.5rem;
+      color:#fff;
+      text-shadow:0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    nav{
+      display:flex;
+      gap:20px;
+    }
+
+    nav a{
+      padding:10px 18px;
+      border-radius:14px;
+      transition:0.25s;
+      font-weight:600;
+    }
+
+    nav a:hover{
+      background:white;
+      color:#7c3aed;
+    }
+
+    /* HERO */
+
+    .hero{
+      text-align:center;
+      padding:80px 20px 60px;
+    }
+
+    .hero h2{
+      font-size:4rem;
+      margin-bottom:20px;
+      line-height:1.1;
+      text-shadow:0 5px 15px rgba(0,0,0,0.25);
+    }
+
+    .hero p{
+      max-width:700px;
+      margin:auto;
+      font-size:1.2rem;
+      opacity:0.95;
+    }
+
+    .hero button{
+      margin-top:35px;
+      padding:16px 35px;
+      border:none;
+      border-radius:20px;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      background:#ffe600;
+      color:#222;
+      transition:0.3s;
+      box-shadow:0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .hero button:hover{
+      transform:translateY(-5px) scale(1.05);
+      background:#fff;
+    }
+
+    /* GAMES */
+
+    .games{
+      padding:40px 5% 90px;
+    }
+
+    .games h2{
+      text-align:center;
+      font-size:2.8rem;
+      margin-bottom:40px;
+    }
+
+    .game-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:30px;
+    }
+
+    .game-card{
+      border-radius:28px;
+      overflow:hidden;
+      position:relative;
+      transition:0.35s;
+      cursor:pointer;
+      box-shadow:0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    .game-card:hover{
+      transform:translateY(-10px) rotate(-1deg) scale(1.02);
+    }
+
+    .game-card img{
+      width:100%;
+      height:220px;
+      object-fit:cover;
+      display:block;
+    }
+
+    .card-content{
+      padding:22px;
+      color:white;
+    }
+
+    .card-content h3{
+      font-size:1.5rem;
+      margin-bottom:10px;
+    }
+
+    .card-content p{
+      opacity:0.92;
+      margin-bottom:15px;
+    }
+
+    .badge{
+      display:inline-block;
+      background:white;
+      color:#222;
+      padding:8px 14px;
+      border-radius:999px;
+      font-size:0.85rem;
+      font-weight:700;
+    }
+
+    /* DIFFERENT CARD COLORS */
+
+    .blue{
+      background:linear-gradient(135deg,#00c6ff,#0072ff);
+    }
+
+    .pink{
+      background:linear-gradient(135deg,#ff4fd8,#ff006e);
+    }
+
+    .green{
+      background:linear-gradient(135deg,#00e676,#00b894);
+    }
+
+    .orange{
+      background:linear-gradient(135deg,#ffb703,#fb8500);
+    }
+
+    .purple{
+      background:linear-gradient(135deg,#7c4dff,#c918ff);
+    }
+
+    .red{
+      background:linear-gradient(135deg,#ff5f6d,#ff1744);
+    }
+
+    .teal{
+      background:linear-gradient(135deg,#00d2d3,#01a3a4);
+    }
+
+    .yellow{
+      background:linear-gradient(135deg,#feca57,#ff9f43);
+    }
+
+    /* ABOUT */
+
+    .about{
+      margin:0 5% 80px;
+      padding:50px;
+      border-radius:35px;
+      background:rgba(255,255,255,0.15);
+      backdrop-filter:blur(10px);
+      text-align:center;
+    }
+
+    .about h2{
+      font-size:2.5rem;
+      margin-bottom:20px;
+    }
+
+    .about p{
+      max-width:800px;
+      margin:auto;
+      line-height:1.8;
+      font-size:1.1rem;
+    }
+
+    /* FOOTER */
+
+    footer{
+      text-align:center;
+      padding:25px;
+      background:rgba(0,0,0,0.15);
+      backdrop-filter:blur(10px);
+      font-size:0.95rem;
+    }
+
+    /* MOBILE */
+
+    @media(max-width:768px){
+
+      header{
+        flex-direction:column;
+        gap:15px;
+      }
+
+      .hero h2{
+        font-size:2.7rem;
+      }
+
+      .games h2,
+      .about h2{
+        font-size:2rem;
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <header>
+
+    <h1>🎮 NovaArcade</h1>
+
+    <nav>
+      <a href="#">Home</a>
+      <a href="#games">Games</a>
+      <a href="#about">About</a>
+    </nav>
+
+  </header>
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <h2>Jump Into Colorful Arcade Adventures</h2>
+
+    <p>
+      Explore exciting browser games packed with action, racing,
+      battles, puzzles, and futuristic fun.
+    </p>
+
+    <button>Play Soon</button>
+
+  </section>
+
+  <!-- GAMES -->
+
+  <section id="games" class="games">
+
+    <h2>🔥 Featured Games</h2>
+
+    <div class="game-grid">
+
+      <!-- GAME 1 -->
+
+      <div class="game-card blue">
+
+        <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1971&auto=format&fit=crop">
+
+        <div class="card-content">
+          <h3>Digital Escape Room</h3>
+          <p>Solve puzzles and crack codes to break free before time runs out.</p>
+          <span class="badge">Puzzle</span>
+        </div>
+
+      </div>
+
+      <!-- GAME 2 -->
+
+      <div class="game-card pink">
+
+        <img src="https://images.unsplash.com/photo-1535223289827-42f1e9919769?q=80&w=2070&auto=format&fit=crop">
+
+        <div class="card-content">
+          <h3>Secret Missions</h3>
+          <p>Complete covert operations and stealth challenges undetected.</p>
+          <span class="badge">Stealth</span>
+        </div>
+
+      </div>
+
+      <!-- GAME 3 -->
+
+      <div class="game-card green">
+
+        <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop">
+
+        <div class="card-content">
+          <h3>AI Prompt Battle</h3>
+          <p>Compete to generate the best AI images and text prompts.</p>
+          <span class="badge">Creative</span>
+        </div>
+
+      </div>
+
+      <!-- GAME 4 -->
+
+      <div class="game-card orange">
+
+        <img src="https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?q=80&w=1974&auto=format&fit=crop">
+
+        <div class="card-content">
+          <h3>Social Deduction / Mafia</h3>
+          <p>Deceive or detect lies in this classic multiplayer mystery game.</p>
+          <span class="badge">Multiplayer</span>
+        </div>
+
+      </div>
+
+      <!-- GAME 5 -->
+
+      <div class="game-card purple">
+
+        <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop">
+
+        <div class="card-content">
+          <h3>Networking Bingo</h3>
+          <p>Connect with others and complete fun social challenges to win.</p>
+          <span class="badge">Social</span>
+        </div>
+
+      </div>
+
+      <!-- GAME 6 -->
+
+      <div class="game-card red">
+
+        <img src="https://images.unsplash.com/photo-1560253023-3ec5d502959f?q=80&w=1974&auto=format&fit=crop">
+
+        <div class="card-content">
+          <h3>Startup Simulator</h3>
+          <p>Build your empire from scratch and become the next tech giant.</p>
+          <span class="badge">Strategy</span>
+        </div>
+
+      </div>
+
+      <!-- GAME 7 -->
+
+      <div class="game-card teal">
+
+        <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1971&auto=format&fit=crop">
+
+        <div class="card-content">
+          <h3>Territory Capture Game</h3>
+          <p>Expand your domain and outsmart rivals to dominate the map.</p>
+          <span class="badge">Strategy</span>
+        </div>
+
+      </div>
+
+      <!-- GAME 8 -->
+
+      <div class="game-card yellow">
+
+        <img src="https://images.unsplash.com/photo-1535223289827-42f1e9919769?q=80&w=2070&auto=format&fit=crop">
+
+        <div class="card-content">
+          <h3>Fake Conspiracy Mystery</h3>
+          <p>Uncover absurd conspiracies and separate fact from fiction.</p>
+          <span class="badge">Mystery</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ABOUT -->
+
+  <section id="about" class="about">
+
+    <h2>✨ About NovaArcade</h2>
+
+    <p>
+      NovaArcade is a colorful browser gaming platform inspired by the fun,
+      energetic feeling of classic online arcade sites while keeping a fresh,
+      modern style. Discover exciting indie games, futuristic worlds, and
+      endless fun directly in your browser.
+    </p>
+
+  </section>
+
+  <!-- FOOTER -->
+
+  <footer>
+    <p>© 2026 NovaArcade • Play Beyond Reality</p>
+  </footer>
+
+</body>
+</html>
