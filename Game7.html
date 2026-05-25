@@ -1,0 +1,286 @@
+
+# ==========================================
+# GAME 6: STARTUP SIMULATOR
+# ==========================================
+startup = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Startup Simulator | NovaArcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Fredoka', sans-serif;
+  background: linear-gradient(135deg, #0d1b2a, #1b3a4b, #0d1b2a);
+  min-height:100vh; color:#fff; overflow-x:hidden;
+}
+.container { max-width:900px; margin:0 auto; padding:30px 20px; }
+h1 { text-align:center; font-size:2.5rem; margin-bottom:10px; text-shadow:0 0 20px #ffb703; }
+.stats-bar {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:15px;
+  margin:25px 0;
+}
+.stat-box {
+  background:rgba(255,255,255,0.05); border:2px solid rgba(255,183,3,0.3);
+  border-radius:15px; padding:15px; text-align:center;
+}
+.stat-label { font-size:0.85rem; opacity:0.8; }
+.stat-value { font-size:1.5rem; font-weight:700; color:#ffb703; }
+.game-area {
+  background:rgba(255,255,255,0.05); border-radius:20px;
+  padding:30px; margin:20px 0; border:2px solid rgba(255,183,3,0.2);
+}
+.event-card {
+  background:rgba(0,0,0,0.3); border-radius:15px; padding:20px;
+  margin:15px 0; border-left:4px solid #ffb703;
+}
+.event-title { font-size:1.2rem; color:#ffb703; margin-bottom:10px; }
+.event-desc { line-height:1.6; margin-bottom:15px; }
+.choices { display:flex; flex-wrap:wrap; gap:10px; }
+button {
+  padding:12px 24px; border:none; border-radius:12px;
+  font-family:'Fredoka', sans-serif; font-size:0.95rem; font-weight:600;
+  background:#ffb703; color:#000; cursor:pointer; transition:0.3s;
+}
+button:hover { transform:translateY(-2px); background:#fff; }
+button:disabled { opacity:0.4; cursor:not-allowed; }
+.progress-bar {
+  width:100%; height:25px; background:rgba(255,255,255,0.1);
+  border-radius:12px; overflow:hidden; margin:10px 0;
+}
+.progress-fill {
+  height:100%; background:linear-gradient(90deg,#ffb703,#fb8500);
+  width:0%; transition:width 0.5s ease;
+}
+.phase-indicator {
+  text-align:center; padding:15px; margin:15px 0;
+  background:rgba(255,183,3,0.1); border-radius:15px;
+  border:2px solid rgba(255,183,3,0.3);
+}
+.log { 
+  max-height:150px; overflow-y:auto; 
+  background:rgba(0,0,0,0.2); border-radius:10px; padding:15px;
+  margin:15px 0;
+}
+.log-entry { padding:5px 0; font-size:0.9rem; border-bottom:1px solid rgba(255,255,255,0.1); }
+.end-screen {
+  text-align:center; padding:40px; display:none;
+}
+.end-screen h2 { font-size:2.5rem; margin-bottom:20px; }
+.back-link {
+  display:inline-block; margin-top:20px; padding:15px 30px;
+  background:rgba(255,255,255,0.1); color:#fff;
+  border-radius:15px; text-decoration:none; border:2px solid rgba(255,255,255,0.2);
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🚀 Startup Simulator</h1>
+  
+  <div class="stats-bar">
+    <div class="stat-box">
+      <div class="stat-label">💰 Funding</div>
+      <div class="stat-value" id="funding">$10K</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">👥 Users</div>
+      <div class="stat-value" id="users">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">📈 Hype</div>
+      <div class="stat-value" id="hype">0%</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">⚡ Energy</div>
+      <div class="stat-value" id="energy">100%</div>
+    </div>
+  </div>
+
+  <div class="phase-indicator" id="phaseText">
+    <strong>Phase 1:</strong> Garage Startup — Build your MVP
+  </div>
+
+  <div class="game-area" id="gameArea">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div id="eventContainer"></div>
+  </div>
+
+  <div class="log" id="gameLog">
+    <div class="log-entry">🎮 Welcome, founder! Your startup journey begins...</div>
+  </div>
+
+  <div class="end-screen" id="endScreen">
+    <h2 id="endTitle"></h2>
+    <p id="endDesc" style="font-size:1.2rem;"></p>
+    <div id="finalStats" style="margin:20px 0; font-size:1.1rem;"></div>
+    <button onclick="location.reload()">🔄 Start New Company</button>
+    <a href="index.html" class="back-link">← Back to NovaArcade</a>
+  </div>
+</div>
+
+<script>
+let funding=10000, users=0, hype=0, energy=100, phase=1, turn=0;
+
+const events = [
+  {
+    phase:1, title:"💡 The Idea", desc:"You have a brilliant idea for an app. What's your next move?",
+    choices:[
+      {text:"Build MVP yourself", effect:()=>{energy-=20; funding-=1000; log("You coded all night. Energy drained but MVP is ready!");}},
+      {text:"Hire freelancer", effect:()=>{funding-=3000; users+=50; log("Freelancer built it fast. Early users joined!");}},
+      {text:"Find a co-founder", effect:()=>{energy+=10; funding-=500; log("You found a tech co-founder! Team strength +1");}}
+    ]
+  },
+  {
+    phase:1, title:"🎯 First Users", desc:"How do you acquire your first 100 users?",
+    choices:[
+      {text:"Post on Reddit", effect:()=>{users+=80; hype+=10; log("Reddit post went semi-viral! +80 users");}},
+      {text:"Run ads", effect:()=>{funding-=2000; users+=150; hype+=5; log("Ads worked! Expensive but effective.");}},
+      {text:"Cold outreach", effect:()=>{energy-=15; users+=40; hype+=20; log("Grinding DMs. Slow but personal touch works.");}}
+    ]
+  },
+  {
+    phase:2, title:"💸 Investor Meeting", desc:"A VC wants to meet. How do you pitch?",
+    choices:[
+      {text:"Show user growth", effect:()=>{if(users>100){funding+=50000; hype+=30; log("VC impressed by traction! $50K raised!");}else{log("VC passed. Need more users first.");}}},
+      {text:"Demo the product", effect:()=>{funding+=25000; hype+=15; log("Great demo! $25K seed round.");}},
+      {text:"Big vision pitch", effect:()=>{hype+=40; funding+=10000; log("They love the vision! Small check but big hype.");}}
+    ]
+  },
+  {
+    phase:2, title:"🐛 Critical Bug", desc:"Your app crashes for 50% of users. Action?",
+    choices:[
+      {text:"All-hands fix", effect:()=>{energy-=30; users-=20; log("Team pulled all-nighter. Bug fixed, some users left.");}},
+      {text:"Rollback update", effect:()=>{users-=50; hype-=10; log("Rolled back. Users annoyed but app stable.");}},
+      {text:"Ignore and pray", effect:()=>{users-=100; hype-=20; log("Bad move. Users mass-uninstalled. 💀");}}
+    ]
+  },
+  {
+    phase:3, title:"📰 TechCrunch Feature", desc:"TechCrunch wants to write about you!",
+    choices:[
+      {text:"Share revenue numbers", effect:()=>{hype+=50; users+=500; funding+=20000; log("Article blew up! Massive exposure!");}},
+      {text:"Focus on mission", effect:()=>{hype+=30; users+=200; log("Heartfelt story resonated with readers.");}},
+      {text:"Decline (too early)", effect:()=>{log("Missed opportunity. Competitor got featured instead.");}}
+    ]
+  },
+  {
+    phase:3, title:"🏢 Office or Remote?", desc:"Team is growing. Office space available downtown.",
+    choices:[
+      {text:"Get office", effect:()=>{funding-=15000; energy+=20; hype+=10; log("Fancy office! Team morale up, bank account down.");}},
+      {text:"Stay remote", effect:()=>{energy-=10; funding+=5000; log("Saved money but team feels disconnected.");}},
+      {text:"Hybrid model", effect:()=>{funding-=5000; energy+=5; log("Best of both worlds. Balanced approach.");}}
+    ]
+  },
+  {
+    phase:4, title:"🤝 Acquisition Offer", desc:"Big Tech wants to acquire you for $500K!",
+    choices:[
+      {text:"Sell!", effect:()=>{endGame('sold');}},
+      {text:"Negotiate higher", effect:()=>{if(hype>80){endGame('unicorn');}else{log("They walked away. Keep grinding!");}}},
+      {text:"Reject and scale", effect:()=>{funding+=100000; hype+=20; log("Bold move! Series A incoming! $100K raised!");}}
+    ]
+  },
+  {
+    phase:4, title:"🌍 Global Expansion", desc:"Users from 20 countries want your product.",
+    choices:[
+      {text:"Localize everything", effect:()=>{funding-=30000; users+=2000; hype+=40; log("Global domination begins! +2000 users!");}},
+      {text:"Focus on core market", effect:()=>{users+=500; energy+=10; log("Steady growth in core market. Sustainable.");}},
+      {text:"Partner locally", effect:()=>{funding-=10000; users+=1000; log:"Smart partnerships = fast expansion!");}}
+    ]
+  }
+];
+
+function log(msg) {
+  const logDiv = document.getElementById('gameLog');
+  const entry = document.createElement('div');
+  entry.className='log-entry';
+  entry.textContent=`Turn ${turn}: ${msg}`;
+  logDiv.insertBefore(entry, logDiv.firstChild);
+}
+
+function updateStats() {
+  document.getElementById('funding').textContent = '$'+funding.toLocaleString();
+  document.getElementById('users').textContent = users.toLocaleString();
+  document.getElementById('hype').textContent = hype+'%';
+  document.getElementById('energy').textContent = energy+'%';
+  document.getElementById('progress').style.width = (turn/8*100)+'%';
+  
+  if(funding<0) endGame('bankrupt');
+  if(energy<=0) endGame('burnout');
+}
+
+function loadEvent() {
+  const available = events.filter(e=>e.phase<=phase && !e.used);
+  if(available.length===0 || turn>=8) {
+    if(users>5000 && hype>80) endGame('unicorn');
+    else if(users>1000) endGame('success');
+    else endGame('struggle');
+    return;
+  }
+  
+  const evt = available[Math.floor(Math.random()*available.length)];
+  evt.used = true;
+  turn++;
+  
+  const container = document.getElementById('eventContainer');
+  container.innerHTML = `
+    <div class="event-card">
+      <div class="event-title">${evt.title}</div>
+      <div class="event-desc">${evt.desc}</div>
+      <div class="choices" id="choices"></div>
+    </div>
+  `;
+  
+  const choicesDiv = document.getElementById('choices');
+  evt.choices.forEach(c=>{
+    const btn = document.createElement('button');
+    btn.textContent = c.text;
+    btn.onclick = ()=>{
+      c.effect();
+      updateStats();
+      if(document.getElementById('endScreen').style.display==='none') {
+        setTimeout(()=>{
+          if(turn===2) { phase=2; document.getElementById('phaseText').innerHTML='<strong>Phase 2:</strong> Seed Round — Prove traction'; }
+          if(turn===4) { phase=3; document.getElementById('phaseText').innerHTML='<strong>Phase 3:</strong> Growth — Scale or die'; }
+          if(turn===6) { phase=4; document.getElementById('phaseText').innerHTML='<strong>Phase 4:</strong> Exit Strategy — IPO or acquisition'; }
+          loadEvent();
+        }, 1500);
+      }
+    };
+    choicesDiv.appendChild(btn);
+  });
+}
+
+function endGame(type) {
+  document.getElementById('gameArea').style.display='none';
+  document.getElementById('gameLog').style.display='none';
+  document.getElementById('phaseText').style.display='none';
+  document.getElementById('endScreen').style.display='block';
+  
+  const titles = {
+    sold: {title:'💰 SOLD!', desc:'You exited for $500K. Not bad for a first startup!', color:'#ffb703'},
+    unicorn: {title:'🦄 UNICORN!', desc:'You built a billion-dollar company! Legendary!', color:'#00e676'},
+    success: {title:'✅ SUCCESS!', desc:'Profitable startup with loyal users. Great job!', color:'#00c6ff'},
+    struggle: {title:'📉 Struggling...', desc:'The startup life is hard. Maybe next time!', color:'#ff5f6d'},
+    bankrupt: {title:'💸 BANKRUPT', desc:'You ran out of money. Startup life is brutal.', color:'#ff5f6d'},
+    burnout: {title:'😴 BURNOUT', desc:'You collapsed from exhaustion. Health first!', color:'#ff5f6d'}
+  };
+  
+  const r = titles[type];
+  document.getElementById('endTitle').textContent = r.title;
+  document.getElementById('endTitle').style.color = r.color;
+  document.getElementById('endDesc').textContent = r.desc;
+  document.getElementById('finalStats').innerHTML = 
+    `Final Stats: $${funding.toLocaleString()} funding | ${users.toLocaleString()} users | ${hype}% hype`;
+}
+
+loadEvent();
+updateStats();
+</script>
+</body>
+</html>'''
+
+with open('/mnt/agents/output/startup-simulator.html', 'w') as f:
+    f.write(startup)
+print("✅ startup-simulator.html created")
